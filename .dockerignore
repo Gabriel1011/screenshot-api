@@ -1,0 +1,17 @@
+# Node modules locais (serão instalados no container)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Configs e arquivos de sistema
+.DS_Store
+.env.local
+
+# Pastas de IDEs/editors
+.vscode
+.idea
+
+# Outros desnecessários
+*.log
+*.md
+docker-compose.override.yml

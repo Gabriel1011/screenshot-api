@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  screenshot-api:
+    build: .
+    ports:
+      - "8001:3000"
