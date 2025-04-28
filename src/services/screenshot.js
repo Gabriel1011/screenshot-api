@@ -1,4 +1,5 @@
-import { createBrowser, createPage } from "./browser.js";
+import { createPage } from "./browser.js";
+import browserPool from "./browserPool.js";
 
 /**
  * Captura screenshot de uma URL
@@ -9,15 +10,33 @@ import { createBrowser, createPage } from "./browser.js";
 export const captureScreenshot = async (url, fullPage = false) => {
   let browser;
   try {
-    browser = await createBrowser();
+    browser = await browserPool.getBrowser();
     const page = await createPage(browser);
 
-    // Navegar para a URL
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const resourceType = req.resourceType();
+      if (['font', 'media', 'websocket', 'other'].includes(resourceType)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
-    // Capturar screenshot
-    return await page.screenshot({ fullPage });
+    const screenshot = await page.screenshot({ fullPage });
+
+    await page.close();
+
+    return screenshot;
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      browserPool.releaseBrowser(browser);
+    }
   }
+};
+
+export const cleanup = async () => {
+  await browserPool.closeAll();
 };
