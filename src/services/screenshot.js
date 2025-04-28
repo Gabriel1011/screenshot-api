@@ -23,7 +23,7 @@ export const captureScreenshot = async (url, fullPage = false) => {
       }
     });
 
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(url, { waitUntil: "load", timeout: 60000 });
 
     const screenshot = await page.screenshot({ fullPage });
 
