@@ -1,0 +1,32 @@
+# Load Test para Screenshot API
+#
+# Como executar:
+# 1. Instale o Artillery globalmente: npm install -g artillery
+# 2. Certifique-se que a API está rodando em http://localhost:3000
+# 3. Execute o teste: artillery run load-test.yml
+# 4. Para gerar um relatório HTML: artillery run --output report.json load-test.yml && artillery report report.json
+#
+# Configurações:
+# - Fase 1: Aquecimento com 5 requisições por segundo durante 60 segundos
+# - Fase 2: Carga sustentada com 10 requisições por segundo durante 120 segundos
+# - Cada usuário virtual faz uma requisição para v1/screenshot e outra para v2/screenshot
+# - Há um tempo de espera de 3 segundos entre as requisições
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+
+scenarios:
+  - name: "Screenshot API Test"
+    flow:
+      - get:
+          url: "/v1/screenshot?url=https://www.mercadolivre.com.br/kit-halteres-6-em-1-peso-musculaco-ate-40kg-ajustavel-halter-kettlebell-anilha-cor-preto-vermelho/p/MLB26591487#reco_item_pos=2&reco_backend=item_decorator&reco_backend_type=function&reco_client=home_items-decorator-legacy&reco_id=d4502f17-c048-4fd8-9e2c-caca8c085e63&reco_model=&c_id=/home/bookmarks-recommendations-seed/element&c_uid=5404dc25-a233-4ddf-9d83-f3409b8c0bcb&da_id=bookmark&da_position=2&id_origin=/home/dynamic_access&da_sort_algorithm=ranker"
+      - think: 3
+      - get:
+          url: "/v2/screenshot?url=https://www.mercadolivre.com.br/kit-halteres-6-em-1-peso-musculaco-ate-40kg-ajustavel-halter-kettlebell-anilha-cor-preto-vermelho/p/MLB26591487#reco_item_pos=2&reco_backend=item_decorator&reco_backend_type=function&reco_client=home_items-decorator-legacy&reco_id=d4502f17-c048-4fd8-9e2c-caca8c085e63&reco_model=&c_id=/home/bookmarks-recommendations-seed/element&c_uid=5404dc25-a233-4ddf-9d83-f3409b8c0bcb&da_id=bookmark&da_position=2&id_origin=/home/dynamic_access&da_sort_algorithm=ranker"
