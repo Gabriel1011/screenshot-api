@@ -8,10 +8,9 @@ import browserPool from "./browserPool.js";
  * @returns {Promise<Buffer>} Buffer da imagem
  */
 export const captureScreenshot = async (url, fullPage = false) => {
-  let browser;
+  let page;
   try {
-    browser = await browserPool.getBrowser();
-    const page = await createPage(browser);
+    page = await browserPool.getPage();
 
     await page.setRequestInterception(true);
     page.on('request', (req) => {
@@ -27,16 +26,31 @@ export const captureScreenshot = async (url, fullPage = false) => {
 
     const screenshot = await page.screenshot({ fullPage });
 
-    await page.close();
+    page.removeAllListeners('request');
 
     return screenshot;
+  } catch (error) {
+    console.error(`Error capturing screenshot for ${url}:`, error);
+    throw error;
   } finally {
-    if (browser) {
-      browserPool.releaseBrowser(browser);
+    if (page) {
+      try {
+        await browserPool.releasePage(page);
+      } catch (error) {
+        console.error('Error releasing page:', error);
+      }
     }
   }
 };
 
+/**
+ * Limpa todos os recursos do pool de browsers
+ */
 export const cleanup = async () => {
-  await browserPool.closeAll();
+  try {
+    await browserPool.closeAll();
+    console.info('All browser resources cleaned up');
+  } catch (error) {
+    console.error('Error during cleanup:', error);
+  }
 };
