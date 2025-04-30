@@ -2,7 +2,6 @@ import { createBrowserPool } from './browser-pool.service.js';
 import config from '../config/index.js';
 import { createBrowserProvider } from '../providers/index.js';
 
-// Criar pools para cada versão
 const v1Pool = createBrowserPool(config.providers.v1);
 const v2Pool = createBrowserPool(config.providers.v2);
 
@@ -19,44 +18,57 @@ export const captureScreenshot = async (url, options = {}, version = 'v1') => {
     createBrowserProvider(config.providers.v2) :
     createBrowserProvider(config.providers.v1);
 
-  let page, release;
+  let wrappedPage = null;
+  let screenshot = null;
+  let error = null;
+
   try {
-    ({ page, release } = await pool.getPage());
+    wrappedPage = await pool.getPage();
 
-    // Configurar interceptação de requisições
-    await provider.setupRequestInterception(page, (req) => {
-      const resourceType = req.resourceType();
-      if (['media', 'websocket', 'other'].includes(resourceType)) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
+    await wrappedPage.ensureValidPage();
+    const { page } = wrappedPage;
 
-    // Navegar para a URL
+    try {
+      await provider.setupRequestInterception(page, (req) => {
+        const resourceType = req.resourceType();
+        if (['media', 'websocket', 'other'].includes(resourceType)) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
+    } catch (interceptErr) {
+      console.warn('Error setting up request interception:', interceptErr.message);
+    }
+
     await provider.navigateTo(page, url, {
       waitUntil: "load",
       timeout: options.timeout || 60000
     });
 
-    // Capturar screenshot
-    const screenshot = await provider.takeScreenshot(page, {
+    screenshot = await provider.takeScreenshot(page, {
       fullPage: options.fullPage || false
     });
 
-    // Remover listeners
-    provider.removeListeners(page);
+    try {
+      if (!await wrappedPage.isPageClosed()) {
+        provider.removeListeners(page);
+      }
+    } catch (listenerErr) {
+      console.warn('Error removing listeners:', listenerErr.message);
+    }
 
     return screenshot;
-  } catch (error) {
+  } catch (err) {
+    error = err;
     console.error(`Error capturing screenshot for ${url}:`, error);
     throw error;
   } finally {
-    if (page) {
+    if (wrappedPage && wrappedPage.release) {
       try {
-        await release(page);
-      } catch (error) {
-        console.error('Error releasing page:', error);
+        await wrappedPage.release();
+      } catch (releaseErr) {
+        console.error('Error releasing page:', releaseErr);
       }
     }
   }

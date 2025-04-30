@@ -12,8 +12,11 @@ class BrowserPool {
     this.browserUsage = new Map();
     this.browserLastUsed = new Map();
     this.queue = [];
+    this.browsersBeingCreated = 0;
 
     this.cleanupTimer = setInterval(() => this.cleanupIdleBrowsers(), 60000);
+
+    console.info(`Browser pool initialized with ${this.maxBrowsers} max browsers and ${this.maxPagesPerBrowser} max pages per browser`);
   }
 
   async getPage() {
@@ -34,18 +37,41 @@ class BrowserPool {
       }
     }
 
-    if (this.browsers.size < this.maxBrowsers) {
+    if (this.browsers.size + this.browsersBeingCreated < this.maxBrowsers) {
       try {
+        this.browsersBeingCreated++;
+
         const newBrowser = await this.provider.createBrowser();
         this.browsers.add(newBrowser);
         this.browserUsage.set(newBrowser, new Set());
         this.browserLastUsed.set(newBrowser, Date.now());
         console.info(`Created new browser (${this.browsers.size}/${this.maxBrowsers})`);
+
+        this.browsersBeingCreated--;
+
         await this.fulfillRequest(newBrowser);
       } catch (err) {
+        this.browsersBeingCreated--;
+
         console.error('Error creating browser:', err);
         this.queue.shift()?.reject(err);
       }
+    } else if (this.queue.length > 0) {
+    }
+  }
+
+  async isPageClosed(page) {
+    try {
+      if (!page) return true;
+
+      if (typeof page.isClosed === 'function') {
+        return page.isClosed();
+      }
+
+      await page.url();
+      return false;
+    } catch (err) {
+      return true;
     }
   }
 
@@ -54,6 +80,10 @@ class BrowserPool {
     if (!request) return;
 
     try {
+      if (!this.browsers.has(browser)) {
+        throw new Error('Browser is no longer in the pool');
+      }
+
       const page = await this.provider.createPage(browser);
       const usageSet = this.browserUsage.get(browser);
       usageSet.add(page);
@@ -63,13 +93,44 @@ class BrowserPool {
         page,
         release: async () => {
           try {
-            await this.provider.closePage(page);
+            const isPageClosed = await this.isPageClosed(page);
+
+            if (!isPageClosed && this.browsers.has(browser) && usageSet.has(page)) {
+              await this.provider.closePage(page);
+            } else if (isPageClosed) {
+              console.warn('Attempted to release an already closed page');
+            }
+
             usageSet.delete(page);
             this.browserLastUsed.set(browser, Date.now());
             this.processQueue();
           } catch (err) {
             console.error('Error releasing page:', err);
+            usageSet.delete(page);
+            this.processQueue();
           }
+        },
+        isPageClosed: async () => {
+          return await this.isPageClosed(page);
+        },
+        ensureValidPage: async () => {
+          if (await this.isPageClosed(page)) {
+            console.warn('Detected closed page, requesting new page...');
+            usageSet.delete(page);
+
+            try {
+              const newPage = await this.provider.createPage(browser);
+              usageSet.add(newPage);
+              this.browserLastUsed.set(browser, Date.now());
+
+              wrappedPage.page = newPage;
+              return newPage;
+            } catch (err) {
+              console.error('Error creating replacement page:', err);
+              throw err;
+            }
+          }
+          return page;
         }
       };
 
@@ -77,6 +138,7 @@ class BrowserPool {
     } catch (err) {
       console.error('Error creating page:', err);
       request.reject(err);
+      this.processQueue();
     }
   }
 
