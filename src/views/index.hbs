@@ -1,0 +1,197 @@
+<div class="hero text-center">
+  <div class="container">
+    <div class="logo">📸 Screenshot API</div>
+    <p class="lead">Capture screenshots de qualquer site com uma simples requisição</p>
+    <div class="mt-3">
+      <span class="api-version api-v1">V1 ({{adapterV1}})</span>
+      <span class="api-version api-v2">V2 ({{adapterV2}})</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          Teste a API
+        </div>
+        <div class="card-body">
+          <ul class="nav nav-pills mb-4 justify-content-center" id="api-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="v1-tab" data-bs-toggle="pill" data-bs-target="#v1" type="button" role="tab" aria-controls="v1" aria-selected="true">
+                V1 <span class="badge badge-provider badge-puppeteer">{{adapterV1}}</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="v2-tab" data-bs-toggle="pill" data-bs-target="#v2" type="button" role="tab" aria-controls="v2" aria-selected="false">
+                V2 <span class="badge badge-provider badge-playwright">{{adapterV2}}</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="api-tabs-content">
+            <div class="tab-pane fade show active" id="v1" role="tabpanel" aria-labelledby="v1-tab">
+              <form id="screenshot-form-v1" data-version="v1">
+                <div class="mb-3">
+                  <label for="url-v1" class="form-label">URL do site</label>
+                  <input type="url" class="form-control" id="url-v1" placeholder="https://exemplo.com" required>
+                </div>
+                <div class="mb-3 form-check">
+                  <input type="checkbox" class="form-check-input" id="fullPage-v1">
+                  <label class="form-check-label" for="fullPage-v1">Capturar página inteira</label>
+                </div>
+                <div class="mb-3">
+                  <label for="timeout-v1" class="form-label">Timeout (ms)</label>
+                  <input type="number" class="form-control" id="timeout-v1" placeholder="60000" min="1000" max="120000" step="1000" value="60000">
+                </div>
+                <button type="submit" class="btn btn-primary">Capturar Screenshot com {{adapterV1}}</button>
+              </form>
+            </div>
+
+            <div class="tab-pane fade" id="v2" role="tabpanel" aria-labelledby="v2-tab">
+              <form id="screenshot-form-v2" data-version="v2">
+                <div class="mb-3">
+                  <label for="url-v2" class="form-label">URL do site</label>
+                  <input type="url" class="form-control" id="url-v2" placeholder="https://exemplo.com" required>
+                </div>
+                <div class="mb-3 form-check">
+                  <input type="checkbox" class="form-check-input" id="fullPage-v2">
+                  <label class="form-check-label" for="fullPage-v2">Capturar página inteira</label>
+                </div>
+                <div class="mb-3">
+                  <label for="timeout-v2" class="form-label">Timeout (ms)</label>
+                  <input type="number" class="form-control" id="timeout-v2" placeholder="60000" min="1000" max="120000" step="1000" value="60000">
+                </div>
+                <button type="submit" class="btn btn-primary">Capturar Screenshot com {{adapterV2}}</button>
+              </form>
+            </div>
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-3">Capturando screenshot... Isso pode levar alguns segundos.</p>
+          </div>
+
+          <div id="preview-container" class="preview-container mt-4" style="display: none;">
+            <img id="preview-image" class="preview-image" src="" alt="Screenshot">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          Como usar a API
+        </div>
+        <div class="card-body">
+          <h5>Endpoints</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#endpoint-code">Copiar</button>
+            <pre id="endpoint-code">
+# V1 ({{adapterV1}})
+GET /v1/screenshot?url=https://exemplo.com&fullPage=true
+
+# V2 ({{adapterV2}})
+GET /v2/screenshot?url=https://exemplo.com&fullPage=true
+            </pre>
+          </div>
+
+          <h5>Parâmetros</h5>
+          <ul>
+            <li><strong>url</strong> (obrigatório) - URL do site para capturar</li>
+            <li><strong>fullPage</strong> (opcional) - Define se deve capturar a página inteira (true) ou apenas a área visível (false)</li>
+            <li><strong>timeout</strong> (opcional) - Tempo máximo de espera em milissegundos (padrão: 60000)</li>
+          </ul>
+
+          <h5>Exemplo com cURL</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#curl-code">Copiar</button>
+            <pre id="curl-code">
+# V1 ({{adapterV1}})
+curl -X GET "{{protocol}}://{{hostname}}/v1/screenshot?url=https://exemplo.com" \
+  --output screenshot.png
+
+# V2 ({{adapterV2}})
+curl -X GET "{{protocol}}://{{hostname}}/v2/screenshot?url=https://exemplo.com" \
+  --output screenshot.png
+            </pre>
+          </div>
+
+          <h5>Exemplo com JavaScript</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#js-code">Copiar</button>
+            <pre id="js-code">
+// V1 ({{adapterV1}})
+fetch("{{protocol}}://{{hostname}}/v1/screenshot?url=https://exemplo.com")
+  .then(response => response.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "screenshot.png";
+    a.click();
+  });
+
+// V2 ({{adapterV2}})
+fetch("{{protocol}}://{{hostname}}/v2/screenshot?url=https://exemplo.com")
+  .then(response => response.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "screenshot.png";
+    a.click();
+  });
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          Comparação entre V1 e V2
+        </div>
+        <div class="card-body">
+          <table class="table comparison-table">
+            <thead>
+              <tr>
+                <th>Característica</th>
+                <th>V1 ({{adapterV1}})</th>
+                <th>V2 ({{adapterV2}})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Captura de página inteira</td>
+                <td><i class="bi bi-check-circle feature-available">✓</i></td>
+                <td><i class="bi bi-check-circle feature-available">✓</i></td>
+              </tr>
+              <tr>
+                <td>Performance</td>
+                <td>Boa</td>
+                <td>Excelente</td>
+              </tr>
+              <tr>
+                <td>Compatibilidade com sites modernos</td>
+                <td>Boa</td>
+                <td>Excelente</td>
+              </tr>
+              <tr>
+                <td>Consumo de memória</td>
+                <td>Moderado</td>
+                <td>Baixo</td>
+              </tr>
+              <tr>
+                <td>Velocidade de inicialização</td>
+                <td>Rápida</td>
+                <td>Muito rápida</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

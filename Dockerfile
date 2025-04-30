@@ -26,7 +26,12 @@ COPY .env ./
 RUN npm install
 COPY . .
 
+# Configuração para Puppeteer
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# Configuração para Playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 EXPOSE 3000
 CMD ["npm", "start"]
