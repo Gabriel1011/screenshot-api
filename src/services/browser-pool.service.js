@@ -56,8 +56,14 @@ export class BrowserPool {
       max: this.maxBrowsers * this.maxPagesPerBrowser,
       min: 0,
       idleTimeoutMillis: this.idleTimeoutMs,
-      acquireTimeoutMillis: config.browser.acquireTimeoutMs
+      acquireTimeoutMillis: config.browser.acquireTimeoutMs,
+      testOnBorrow: true,
+      testOnReturn: true,
+      evictionRunIntervalMillis: this.idleTimeoutMs / 2,
+      autostart: true
     });
+
+    console.info(`Browser pool created with max ${this.maxBrowsers} browsers and ${this.maxPagesPerBrowser} pages per browser.`);
   }
 
   async getPage() {
