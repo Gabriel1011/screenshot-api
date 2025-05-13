@@ -1,9 +1,6 @@
-import { createBrowserPool } from './browser-pool.service.js';
 import config from '../config/index.js';
+import { v1Pool, v2Pool } from './browser-pool.service.js';
 import { createBrowserProvider } from '../providers/index.js';
-
-const v1Pool = createBrowserPool(config.providers.v1);
-const v2Pool = createBrowserPool(config.providers.v2);
 
 /**
  * Captura screenshot de uma URL
@@ -71,20 +68,5 @@ export const captureScreenshot = async (url, options = {}, version = 'v1') => {
         console.error('Error releasing page:', releaseErr);
       }
     }
-  }
-};
-
-/**
- * Limpa todos os recursos dos pools de browsers
- */
-export const cleanup = async () => {
-  try {
-    await Promise.all([
-      v1Pool.closeAll(),
-      v2Pool.closeAll()
-    ]);
-    console.info('All browser resources cleaned up');
-  } catch (error) {
-    console.error('Error during cleanup:', error);
   }
 };

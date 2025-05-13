@@ -1,6 +1,7 @@
 import v1Routes from './screenshot.v1.js';
 import v2Routes from './screenshot.v2.js';
 import config from '../config/index.js';
+import markdownRoutes from './markdown.routes.js';
 
 /**
  * Registra todas as rotas da aplicação
@@ -31,4 +32,6 @@ export default async function (fastify) {
   fastify.get("/screenshot", async (request, reply) => {
     return reply.redirect(302, `/v1/screenshot?${new URLSearchParams(request.query).toString()}`);
   });
+
+  fastify.register(markdownRoutes);
 }

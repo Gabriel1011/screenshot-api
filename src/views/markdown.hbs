@@ -1,0 +1,332 @@
+<div class="hero text-center">
+  <div class="container">
+    <div class="logo">📝 HTML to Markdown</div>
+    <p class="lead">Converta o conteúdo HTML de qualquer site para Markdown com uma simples requisição</p>
+    <div class="mt-3">
+      <span class="api-version api-v1">V1 ({{adapterV1}})</span>
+      <span class="api-version api-v2">V2 ({{adapterV2}})</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card">
+        <div class="card-header">
+          Teste a Conversão HTML para Markdown
+        </div>
+        <div class="card-body">
+          <ul class="nav nav-pills mb-4 justify-content-center" id="api-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="v1-tab" data-bs-toggle="pill" data-bs-target="#v1" type="button" role="tab" aria-controls="v1" aria-selected="true">
+                V1 <span class="badge badge-provider badge-puppeteer">{{adapterV1}}</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="v2-tab" data-bs-toggle="pill" data-bs-target="#v2" type="button" role="tab" aria-controls="v2" aria-selected="false">
+                V2 <span class="badge badge-provider badge-playwright">{{adapterV2}}</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="api-tabs-content">
+            <div class="tab-pane fade show active" id="v1" role="tabpanel" aria-labelledby="v1-tab">
+              <form id="markdown-form-v1" data-version="v1">
+                <div class="mb-3">
+                  <label for="url-v1" class="form-label">URL do site</label>
+                  <input type="url" class="form-control" id="url-v1" placeholder="https://exemplo.com" required>
+                </div>
+                <div class="mb-3">
+                  <label for="selector-v1" class="form-label">Seletor CSS (opcional)</label>
+                  <input type="text" class="form-control" id="selector-v1" placeholder="main, article, #content">
+                  <div class="form-text">Especifique um seletor para converter apenas uma parte específica da página</div>
+                </div>
+                <div class="mb-3">
+                  <label for="waitForSelector-v1" class="form-label">Aguardar pelo seletor (opcional)</label>
+                  <input type="text" class="form-control" id="waitForSelector-v1" placeholder=".loaded, #content">
+                  <div class="form-text">Aguarda este elemento aparecer antes de capturar o HTML</div>
+                </div>
+                <div class="mb-3">
+                  <label for="timeout-v1" class="form-label">Timeout (ms)</label>
+                  <input type="number" class="form-control" id="timeout-v1" placeholder="60000" min="1000" max="120000" step="1000" value="60000">
+                </div>
+                <button type="submit" class="btn btn-primary">Converter para Markdown com {{adapterV1}}</button>
+              </form>
+            </div>
+
+            <div class="tab-pane fade" id="v2" role="tabpanel" aria-labelledby="v2-tab">
+              <form id="markdown-form-v2" data-version="v2">
+                <div class="mb-3">
+                  <label for="url-v2" class="form-label">URL do site</label>
+                  <input type="url" class="form-control" id="url-v2" placeholder="https://exemplo.com" required>
+                </div>
+                <div class="mb-3">
+                  <label for="selector-v2" class="form-label">Seletor CSS (opcional)</label>
+                  <input type="text" class="form-control" id="selector-v2" placeholder="main, article, #content">
+                  <div class="form-text">Especifique um seletor para converter apenas uma parte específica da página</div>
+                </div>
+                <div class="mb-3">
+                  <label for="waitForSelector-v2" class="form-label">Aguardar pelo seletor (opcional)</label>
+                  <input type="text" class="form-control" id="waitForSelector-v2" placeholder=".loaded, #content">
+                  <div class="form-text">Aguarda este elemento aparecer antes de capturar o HTML</div>
+                </div>
+                <div class="mb-3">
+                  <label for="timeout-v2" class="form-label">Timeout (ms)</label>
+                  <input type="number" class="form-control" id="timeout-v2" placeholder="60000" min="1000" max="120000" step="1000" value="60000">
+                </div>
+                <button type="submit" class="btn btn-primary">Converter para Markdown com {{adapterV2}}</button>
+              </form>
+            </div>
+          </div>
+
+          <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-3">Convertendo HTML para Markdown... Isso pode levar alguns segundos.</p>
+          </div>
+
+          <div id="result-container" class="mt-4" style="display: none;">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Resultado da Conversão</h5>
+                <button id="copy-markdown" class="btn btn-sm btn-outline-primary">Copiar Markdown</button>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <h6>Título da Página</h6>
+                  <p id="page-title" class="text-muted"></p>
+                </div>
+                <div class="mb-3">
+                  <h6>Markdown Gerado</h6>
+                  <pre id="markdown-result" class="p-3 bg-light border rounded" style="max-height: 400px; overflow-y: auto;"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          Como usar a API
+        </div>
+        <div class="card-body">
+          <h5>Endpoint</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#endpoint-code">Copiar</button>
+            <pre id="endpoint-code">
+# Converter HTML para Markdown
+POST /api/html-to-markdown
+
+# Corpo da requisição (JSON)
+{
+  "url": "https://exemplo.com",
+  "selector": "main",
+  "waitForSelector": ".content-loaded",
+  "timeout": 60000,
+  "version": "v1"  // ou "v2"
+}
+            </pre>
+          </div>
+
+          <h5>Parâmetros</h5>
+          <ul>
+            <li><strong>url</strong> (obrigatório) - URL do site para capturar o HTML</li>
+            <li><strong>selector</strong> (opcional) - Seletor CSS para extrair apenas uma parte específica da página</li>
+            <li><strong>waitForSelector</strong> (opcional) - Seletor CSS para aguardar antes de capturar o HTML</li>
+            <li><strong>timeout</strong> (opcional) - Tempo máximo de espera em milissegundos (padrão: 60000)</li>
+            <li><strong>version</strong> (opcional) - Versão da API a ser usada: "v1" ({{adapterV1}}) ou "v2" ({{adapterV2}})</li>
+          </ul>
+
+          <h5>Exemplo com cURL</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#curl-code">Copiar</button>
+            <pre id="curl-code">
+curl -X POST "{{protocol}}://{{hostname}}/api/html-to-markdown" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://exemplo.com",
+    "selector": "main",
+    "version": "v1"
+  }'
+            </pre>
+          </div>
+
+          <h5>Exemplo com JavaScript</h5>
+          <div class="code-block">
+            <button class="copy-btn" data-clipboard-target="#js-code">Copiar</button>
+            <pre id="js-code">
+fetch("{{protocol}}://{{hostname}}/api/html-to-markdown", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    url: "https://exemplo.com",
+    selector: "main",
+    version: "v1"
+  })
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log("Markdown:", data.markdown);
+    console.log("Título:", data.title);
+  });
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          Comparação entre V1 e V2
+        </div>
+        <div class="card-body">
+          <table class="table comparison-table">
+            <thead>
+              <tr>
+                <th>Característica</th>
+                <th>V1 ({{adapterV1}})</th>
+                <th>V2 ({{adapterV2}})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Seletores CSS</td>
+                <td><i class="bi bi-check-circle feature-available">✓</i></td>
+                <td><i class="bi bi-check-circle feature-available">✓</i></td>
+              </tr>
+              <tr>
+                <td>Performance</td>
+                <td>Boa</td>
+                <td>Excelente</td>
+              </tr>
+              <tr>
+                <td>Compatibilidade com sites modernos</td>
+                <td>Boa</td>
+                <td>Excelente</td>
+              </tr>
+              <tr>
+                <td>Consumo de memória</td>
+                <td>Moderado</td>
+                <td>Baixo</td>
+              </tr>
+              <tr>
+                <td>Velocidade de inicialização</td>
+                <td>Rápida</td>
+                <td>Muito rápida</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loading = document.getElementById('loading');
+    const resultContainer = document.getElementById('result-container');
+    const markdownResult = document.getElementById('markdown-result');
+    const pageTitle = document.getElementById('page-title');
+    const copyMarkdownBtn = document.getElementById('copy-markdown');
+
+    // Ocultar o loading inicialmente
+    loading.style.display = 'none';
+
+    // Configurar os formulários
+    ['v1', 'v2'].forEach(version => {
+      const form = document.getElementById(`markdown-form-${version}`);
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Mostrar loading e esconder resultados
+        loading.style.display = 'block';
+        resultContainer.style.display = 'none';
+
+        // Obter valores do formulário
+        const url = document.getElementById(`url-${version}`).value;
+        const selector = document.getElementById(`selector-${version}`).value;
+        const waitForSelector = document.getElementById(`waitForSelector-${version}`).value;
+        const timeout = parseInt(document.getElementById(`timeout-${version}`).value);
+
+        try {
+          // Fazer a requisição para a API
+          const response = await fetch('/api/html-to-markdown', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              url,
+              selector: selector || undefined,
+              waitForSelector: waitForSelector || undefined,
+              timeout,
+              version
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Erro ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+
+          // Preencher os resultados
+          markdownResult.textContent = data.markdown;
+          pageTitle.textContent = data.title;
+
+          // Mostrar resultados e esconder loading
+          resultContainer.style.display = 'block';
+          loading.style.display = 'none';
+        } catch (error) {
+          alert(`Erro ao converter HTML para Markdown: ${error.message}`);
+          loading.style.display = 'none';
+        }
+      });
+    });
+
+    // Configurar botão de cópia
+    copyMarkdownBtn.addEventListener('click', function() {
+      const textarea = document.createElement('textarea');
+      textarea.value = markdownResult.textContent;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      // Feedback visual
+      const originalText = this.textContent;
+      this.textContent = 'Copiado!';
+      setTimeout(() => {
+        this.textContent = originalText;
+      }, 2000);
+    });
+
+    // Configurar botões de cópia nos exemplos de código
+    document.querySelectorAll('.copy-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-clipboard-target');
+        const targetElement = document.querySelector(targetId);
+
+        const textarea = document.createElement('textarea');
+        textarea.value = targetElement.textContent.trim();
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        // Feedback visual
+        const originalText = this.textContent;
+        this.textContent = 'Copiado!';
+        setTimeout(() => {
+          this.textContent = originalText;
+        }, 2000);
+      });
+    });
+  });
+</script>

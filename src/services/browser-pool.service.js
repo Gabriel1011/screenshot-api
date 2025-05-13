@@ -3,7 +3,7 @@ import config from '../config/index.js';
 import { createBrowserProvider } from '../providers/index.js';
 import { createPool } from 'generic-pool';
 
-export class BrowserPool {
+class BrowserPool {
   constructor(providerType) {
     this.provider = createBrowserProvider(providerType);
     this.maxBrowsers = config.browser.maxBrowsers;
@@ -100,6 +100,24 @@ export class BrowserPool {
   }
 }
 
-export function createBrowserPool(providerType) {
+function createBrowserPool(providerType) {
   return new BrowserPool(providerType);
 }
+
+export const v1Pool = createBrowserPool(config.providers.v1);
+export const v2Pool = createBrowserPool(config.providers.v2);
+
+/**
+ * Limpa todos os recursos dos pools de browsers
+ */
+export const cleanupPools = async () => {
+  try {
+    await Promise.all([
+      v1Pool.closeAll(),
+      v2Pool.closeAll()
+    ]);
+    console.info('All browser resources cleaned up');
+  } catch (error) {
+    console.error('Error during cleanup:', error);
+  }
+};
